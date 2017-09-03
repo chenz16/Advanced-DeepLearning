@@ -57,7 +57,7 @@ First, i took the output of vgg layer 7 as the input my first up-sampling layer.
 		    bias_initializer=tf.zeros_initializer())
 
 
-Then i used tf.add function to combine the vgg layer 4 output with the layer Tconv_1. The output of this layer is named as Tconv_2 with depth of 2*num_classes. tf.add requires the same depth of two. In order to make the two layers compatible, the vgg layer 4 ouput is pre-processed by 1x1 convolution before adding operation.
+Then i used tf.add function to combine the vgg layer 4 output with the layer Tconv_1. The output of this layer was named as Tconv_2 with depth of 2*num_classes. tf.add requires the same depth of input layers. In order to make the two layers compatible, the vgg layer 4 ouput was pre-processed by 1x1 convolution before the adding operation.
 
 	layer_skip  = tf.layers.conv2d(vgg_layer4_out, 4*num_classes, 1, 1)
 	skip_conv = tf.add(Tconv_1, layer_skip)
@@ -65,7 +65,7 @@ Then i used tf.add function to combine the vgg layer 4 output with the layer Tco
 		  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
 		  bias_initializer=tf.zeros_initializer())
 
-This process is repeated to combine the vgg layer 3 output with the layer Tconv_2. The output of this layer is named as Tconv_2 with the depth of num_classes to match the number of output categories. 
+This process was repeated to combine the vgg layer 3 output with the layer Tconv_2. The output of this layer was named as Tconv_2 with the depth of num_classes to match the number of output categories. 
 
 	layer_skip2  = tf.layers.conv2d(vgg_layer3_out, 2*num_classes, 1, 1)
 	skip_conv2 = tf.add(Tconv_2, layer_skip2)
