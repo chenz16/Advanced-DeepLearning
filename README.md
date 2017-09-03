@@ -44,13 +44,34 @@ The project is able to load the vgg model through the helper function, which was
 
 #### Does the project learn the correct features from the images?
 
-In the "layers" function, I first used a 1x1 convolution operation to convert the outputs with depth of 'num_classes'.
+First, i took the output of vgg layer 7 as the input my first up-sampling layer. I tried to have an additional 1 by 1 layer before i do up-sampling. However, the results looks worse. I did the first up-sampling through convolution transpose operation, whose output depth was defined as "4*num_classes". Alternatively, the depth of layer could be set as any other number e.g. num_classess. This layer is named as Tconv_1;
 
-Then i did the first up-sampling through convolution transpose operation, whose output depth was defined as "4*num_classes". Alternatively, the depth of layer could be set as any other number e.g. num_classess. This layer is named as Tconv_1;
 
-Then i used tf.add function to combine the vgg layer 4 output with the layer Tconv_1. The output of this layer is named as Tconv_2 with depth of 2*num_classes. Unlike tf.stack, tf.add adds the layers, which requires the same depth of two. In order to make the two layers compatible, the vgg layer 4 ouput is pre-processed by 1x1 convolution before adding operation.
+	# 1X1 CONV WITH INPUT FROM PREVIOUS ENCODER
+	#Encoder_out = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, 1)
+	Encoder_out = vgg_layer7_out;
+	# UPSAMPLIG - FIRST TRANSPOSE CONV LAYER
+
+	Tconv_1     = tf.layers.conv2d_transpose(Encoder_out, 4*num_classes, 4, 2, padding = 'SAME',
+		    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+		    bias_initializer=tf.zeros_initializer())
+
+
+Then i used tf.add function to combine the vgg layer 4 output with the layer Tconv_1. The output of this layer is named as Tconv_2 with depth of 2*num_classes. tf.add requires the same depth of two. In order to make the two layers compatible, the vgg layer 4 ouput is pre-processed by 1x1 convolution before adding operation.
+
+	layer_skip  = tf.layers.conv2d(vgg_layer4_out, 4*num_classes, 1, 1)
+	skip_conv = tf.add(Tconv_1, layer_skip)
+	Tconv_2     = tf.layers.conv2d_transpose(skip_conv, 2*num_classes, 4, 2, padding = 'SAME',
+		  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+		  bias_initializer=tf.zeros_initializer())
 
 This process is repeated to combine the vgg layer 3 output with the layer Tconv_2. The output of this layer is named as Tconv_2 with the depth of num_classes to match the number of output categories. 
+
+	layer_skip2  = tf.layers.conv2d(vgg_layer3_out, 2*num_classes, 1, 1)
+	skip_conv2 = tf.add(Tconv_2, layer_skip2)
+	Tconv_3     = tf.layers.conv2d_transpose(skip_conv2, num_classes, 16, 8, padding = 'SAME',
+		  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+		  bias_initializer=tf.zeros_initializer())
 
 #### Does the project optimize the neural network?
 
@@ -64,47 +85,27 @@ yes, see the following training loss
 
 yes, on average, the model decreases loss over time.
 
-	Epoch 1 of 40: Training loss: 0.6404
-	Epoch 2 of 40: Training loss: 0.5130
-	Epoch 3 of 40: Training loss: 0.4573
-	Epoch 4 of 40: Training loss: 0.3928
-	Epoch 5 of 40: Training loss: 0.2905
-	Epoch 6 of 40: Training loss: 0.3105
-	Epoch 7 of 40: Training loss: 0.2828
-	Epoch 8 of 40: Training loss: 0.1651
-	Epoch 9 of 40: Training loss: 0.2030
-	Epoch 10 of 40: Training loss: 0.1985
-	Epoch 11 of 40: Training loss: 0.1859
-	Epoch 12 of 40: Training loss: 0.2196
-	Epoch 13 of 40: Training loss: 0.2058
-	Epoch 14 of 40: Training loss: 0.1697
-	Epoch 15 of 40: Training loss: 0.0699
-	Epoch 16 of 40: Training loss: 0.1331
-	Epoch 17 of 40: Training loss: 0.0521
-	Epoch 18 of 40: Training loss: 0.0968
-	Epoch 19 of 40: Training loss: 0.1506
-	Epoch 20 of 40: Training loss: 0.0970
-	Epoch 21 of 40: Training loss: 0.2309
-	Epoch 22 of 40: Training loss: 0.0561
-	Epoch 23 of 40: Training loss: 0.2112
-	Epoch 24 of 40: Training loss: 0.0826
-	Epoch 25 of 40: Training loss: 0.0724
-	Epoch 26 of 40: Training loss: 0.0849
-	Epoch 27 of 40: Training loss: 0.0474
-	Epoch 28 of 40: Training loss: 0.0585
-	Epoch 29 of 40: Training loss: 0.0809
-	Epoch 30 of 40: Training loss: 0.0755
-	Epoch 31 of 40: Training loss: 0.0580
-	Epoch 32 of 40: Training loss: 0.0854
-	Epoch 33 of 40: Training loss: 0.0437
-	Epoch 34 of 40: Training loss: 0.0757
-	Epoch 35 of 40: Training loss: 0.0911
-	Epoch 36 of 40: Training loss: 0.0640
-	Epoch 37 of 40: Training loss: 0.0439
-	Epoch 38 of 40: Training loss: 0.0504
-	Epoch 39 of 40: Training loss: 0.0580
-	Epoch 40 of 40: Training loss: 0.0447
-	Training Finished. Saving test images to: ./runs/1504455239.3679957
+	Epoch 1 of 20: Training loss: 0.6516
+	Epoch 2 of 20: Training loss: 0.5350
+	Epoch 3 of 20: Training loss: 0.4866
+	Epoch 4 of 20: Training loss: 0.3040
+	Epoch 5 of 20: Training loss: 0.2892
+	Epoch 6 of 20: Training loss: 0.1851
+	Epoch 7 of 20: Training loss: 0.2925
+	Epoch 8 of 20: Training loss: 0.6593
+	Epoch 9 of 20: Training loss: 0.1850
+	Epoch 10 of 20: Training loss: 0.3585
+	Epoch 11 of 20: Training loss: 0.1523
+	Epoch 12 of 20: Training loss: 0.1214
+	Epoch 13 of 20: Training loss: 0.1383
+	Epoch 14 of 20: Training loss: 0.1904
+	Epoch 15 of 20: Training loss: 0.1477
+	Epoch 16 of 20: Training loss: 0.1261
+	Epoch 17 of 20: Training loss: 0.1110
+	Epoch 18 of 20: Training loss: 0.1531
+	Epoch 19 of 20: Training loss: 0.1330
+	Epoch 20 of 20: Training loss: 0.1142
+
  
 #### Does the project use reasonable hyperparameters?
 
