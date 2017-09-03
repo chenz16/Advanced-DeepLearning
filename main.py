@@ -57,8 +57,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     """
     # TODO: Implement function
     # 1X1 CONV WITH INPUT FROM PREVIOUS ENCODER
-    Encoder_out = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, 1)
-    #Encoder_out = vgg_layer7_out;
+    #Encoder_out = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, 1)
+    Encoder_out = vgg_layer7_out;
     # UPSAMPLIG - FIRST TRANSPOSE CONV LAYER
 
     Tconv_1     = tf.layers.conv2d_transpose(Encoder_out, 4*num_classes, 4, 2, padding = 'SAME',
